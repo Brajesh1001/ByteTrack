@@ -46,9 +46,12 @@ Step1. Install ByteTrack.
 ```shell
 git clone https://github.com/ifzhang/ByteTrack.git
 cd ByteTrack
+python3 -m pip install --upgrade pip
 pip3 install -r requirements.txt
 python3 setup.py develop
 ```
+
+> **Note:** `requirements.txt` uses Python-version-aware ONNX pins. On Python 3.10+ it installs newer ONNX packages with prebuilt wheels to avoid local source builds.
 
 Step2. Install [pycocotools](https://github.com/cocodataset/cocoapi).
 

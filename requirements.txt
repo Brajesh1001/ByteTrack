@@ -17,6 +17,12 @@ filterpy
 h5py
 
 # verified versions
-onnx==1.8.1
-onnxruntime==1.8.0
-onnx-simplifier==0.3.5
+# Keep legacy ONNX stack for older Python runtimes.
+onnx==1.8.1; python_version < "3.10"
+onnxruntime==1.8.0; python_version < "3.10"
+onnx-simplifier==0.3.5; python_version < "3.10"
+
+# Use wheel-backed ONNX stack on modern Python to avoid source builds.
+onnx==1.20.1; python_version >= "3.10"
+onnxruntime==1.24.1; python_version >= "3.10"
+onnx-simplifier==0.4.36; python_version >= "3.10"

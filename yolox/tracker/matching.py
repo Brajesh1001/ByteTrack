@@ -4,7 +4,49 @@ import scipy
 import lap
 from scipy.spatial.distance import cdist
 
-from cython_bbox import bbox_overlaps as bbox_ious
+# prefer the fast Cython implementation when available; otherwise fall back to
+# a NumPy implementation so demos work without compiling extensions.
+try:
+    from cython_bbox import bbox_overlaps as bbox_ious
+except Exception:
+    def bbox_ious(boxes1, boxes2):
+        """NumPy fallback for bbox IoU (expects tlbr: x1,y1,x2,y2).
+        Returns an array of shape (len(boxes1), len(boxes2)).
+        """
+        boxes1 = np.asarray(boxes1, dtype=np.float32)
+        boxes2 = np.asarray(boxes2, dtype=np.float32)
+        if boxes1.size == 0 or boxes2.size == 0:
+            return np.zeros((boxes1.shape[0], boxes2.shape[0]), dtype=np.float32)
+
+        # intersection
+        x11 = boxes1[:, 0][:, None]
+        y11 = boxes1[:, 1][:, None]
+        x12 = boxes1[:, 2][:, None]
+        y12 = boxes1[:, 3][:, None]
+
+        x21 = boxes2[:, 0][None, :]
+        y21 = boxes2[:, 1][None, :]
+        x22 = boxes2[:, 2][None, :]
+        y22 = boxes2[:, 3][None, :]
+
+        inter_x1 = np.maximum(x11, x21)
+        inter_y1 = np.maximum(y11, y21)
+        inter_x2 = np.minimum(x12, x22)
+        inter_y2 = np.minimum(y12, y22)
+
+        inter_w = np.maximum(0.0, inter_x2 - inter_x1 + 1.0)
+        inter_h = np.maximum(0.0, inter_y2 - inter_y1 + 1.0)
+        inter_area = inter_w * inter_h
+
+        area1 = (x12 - x11 + 1.0) * (y12 - y11 + 1.0)
+        area2 = (x22 - x21 + 1.0) * (y22 - y21 + 1.0)
+
+        union = area1 + area2 - inter_area
+        # avoid division by zero
+        union = np.maximum(union, 1e-6)
+        iou = inter_area / union
+        return iou
+
 from yolox.tracker import kalman_filter
 import time
 

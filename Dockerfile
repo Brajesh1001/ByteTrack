@@ -1,4 +1,4 @@
-FROM nvcr.io/nvidia/tensorrt:21.09-py3
+FROM nvcr.io/nvidia/pytorch:22.12-py3
 
 ENV DEBIAN_FRONTEND=noninteractive
 ARG USERNAME=user
@@ -23,11 +23,11 @@ RUN git clone https://github.com/ifzhang/ByteTrack \
     && cd ByteTrack \
     && git checkout 3434c5e8bc6a5ae8ad530528ba8d9a431967f237 \
     && mkdir -p YOLOX_outputs/yolox_x_mix_det/track_vis \
-    && sed -i 's/torch>=1.7/torch==1.9.1+cu111/g' requirements.txt \
-    && sed -i 's/torchvision==0.10.0/torchvision==0.10.1+cu111/g' requirements.txt \
+    && sed -i 's/torch>=1.10.0/torch>=1.10.0/g' requirements.txt \
+    && sed -i 's/torchvision>=0.11.0/torchvision>=0.11.0/g' requirements.txt \
     && sed -i "s/'cuda'/0/g" tools/demo_track.py \
     && pip3 install pip --upgrade \
-    && pip3 install -r requirements.txt -f https://download.pytorch.org/whl/torch_stable.html \
+    && pip3 install -r requirements.txt \
     && python3 setup.py develop \
     && pip3 install cython \
     && pip3 install 'git+https://github.com/cocodataset/cocoapi.git#subdirectory=PythonAPI' \

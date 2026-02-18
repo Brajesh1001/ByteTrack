@@ -4,7 +4,40 @@ import scipy
 import lap
 from scipy.spatial.distance import cdist
 
-from cython_bbox import bbox_overlaps as bbox_ious
+try:
+    from cython_bbox import bbox_overlaps as bbox_ious
+except ImportError:
+    # Fallback to pure Python implementation if cython_bbox is not available
+    def bbox_ious(atlbrs, btlbrs):
+        """
+        Compute IoU between two sets of bounding boxes
+        Pure Python implementation as fallback for cython_bbox
+        """
+        boxes1 = np.asarray(atlbrs, dtype=np.float64)
+        boxes2 = np.asarray(btlbrs, dtype=np.float64)
+        
+        area1 = (boxes1[:, 2] - boxes1[:, 0]) * (boxes1[:, 3] - boxes1[:, 1])
+        area2 = (boxes2[:, 2] - boxes2[:, 0]) * (boxes2[:, 3] - boxes2[:, 1])
+        
+        ious = np.zeros((len(boxes1), len(boxes2)), dtype=np.float64)
+        
+        for i in range(len(boxes1)):
+            for j in range(len(boxes2)):
+                xx1 = np.maximum(boxes1[i, 0], boxes2[j, 0])
+                yy1 = np.maximum(boxes1[i, 1], boxes2[j, 1])
+                xx2 = np.minimum(boxes1[i, 2], boxes2[j, 2])
+                yy2 = np.minimum(boxes1[i, 3], boxes2[j, 3])
+                
+                w = np.maximum(0.0, xx2 - xx1)
+                h = np.maximum(0.0, yy2 - yy1)
+                
+                intersection = w * h
+                union = area1[i] + area2[j] - intersection
+                
+                ious[i, j] = intersection / union if union > 0 else 0.0
+        
+        return ious
+
 from yolox.tracker import kalman_filter
 import time
 
@@ -58,13 +91,13 @@ def ious(atlbrs, btlbrs):
 
     :rtype ious np.ndarray
     """
-    ious = np.zeros((len(atlbrs), len(btlbrs)), dtype=np.float)
+    ious = np.zeros((len(atlbrs), len(btlbrs)), dtype=np.float64)
     if ious.size == 0:
         return ious
 
     ious = bbox_ious(
-        np.ascontiguousarray(atlbrs, dtype=np.float),
-        np.ascontiguousarray(btlbrs, dtype=np.float)
+        np.ascontiguousarray(atlbrs, dtype=np.float64),
+        np.ascontiguousarray(btlbrs, dtype=np.float64)
     )
 
     return ious
@@ -118,13 +151,13 @@ def embedding_distance(tracks, detections, metric='cosine'):
     :return: cost_matrix np.ndarray
     """
 
-    cost_matrix = np.zeros((len(tracks), len(detections)), dtype=np.float)
+    cost_matrix = np.zeros((len(tracks), len(detections)), dtype=np.float64)
     if cost_matrix.size == 0:
         return cost_matrix
-    det_features = np.asarray([track.curr_feat for track in detections], dtype=np.float)
+    det_features = np.asarray([track.curr_feat for track in detections], dtype=np.float64)
     #for i, track in enumerate(tracks):
         #cost_matrix[i, :] = np.maximum(0.0, cdist(track.smooth_feat.reshape(1,-1), det_features, metric))
-    track_features = np.asarray([track.smooth_feat for track in tracks], dtype=np.float)
+    track_features = np.asarray([track.smooth_feat for track in tracks], dtype=np.float64)
     cost_matrix = np.maximum(0.0, cdist(track_features, det_features, metric))  # Nomalized features
     return cost_matrix
 

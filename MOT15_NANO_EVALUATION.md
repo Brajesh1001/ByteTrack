@@ -141,22 +141,83 @@ The evaluation script prints a table with per-sequence and overall metrics.
 
 ---
 
-## MOT15 Evaluation Metrics
+## MOT15 Evaluation Metrics -- What to Check
 
-| Metric | Description |
-|--------|-------------|
-| **MOTA** | Multi-Object Tracking Accuracy -- combines FP, FN, and ID switches |
-| **IDF1** | ID F1 Score -- ratio of correctly identified detections over average of GT and computed detections |
-| **HOTA** | Higher Order Tracking Accuracy -- balances detection and association |
-| **MT** | Mostly Tracked targets (tracked >= 80% of lifespan) |
-| **ML** | Mostly Lost targets (tracked <= 20% of lifespan) |
-| **FP** | False Positives |
-| **FN** | False Negatives (Misses) |
-| **IDs** | ID Switches |
-| **Frag** | Fragmentations |
-| **MOTP** | Multi-Object Tracking Precision (average overlap with GT) |
-| **Rcll** | Recall |
-| **Prcn** | Precision |
+The evaluation produces **16 metrics** in two groups. Here is every metric, what
+it measures, why it matters, and whether higher or lower is better.
+
+### Primary Metrics (report these first)
+
+These are the headline numbers your manager will look at.
+
+| # | Metric   | Full Name                          | What It Measures | Good Direction | Formula / Note |
+|---|----------|------------------------------------|------------------|----------------|----------------|
+| 1 | **MOTA** | Multi-Object Tracking Accuracy     | Overall tracking quality combining missed targets, false alarms, and identity switches into one number | Higher is better (max 100%) | `MOTA = 1 - (FN + FP + IDs) / GT` |
+| 2 | **IDF1** | ID F1 Score                        | How well the tracker maintains correct identities over time | Higher is better (max 100%) | Harmonic mean of ID Precision and ID Recall |
+| 3 | **HOTA** | Higher Order Tracking Accuracy     | Balanced combination of detection accuracy and association accuracy | Higher is better (max 100%) | Geometric mean of DetA and AssA |
+
+### Detection Quality Metrics
+
+How well does the model *find* objects (regardless of identity)?
+
+| # | Metric   | Full Name                          | What It Measures | Good Direction |
+|---|----------|------------------------------------|------------------|----------------|
+| 4 | **Rcll** (Recall) | Recall                    | Fraction of ground-truth objects that were detected | Higher is better |
+| 5 | **Prcn** (Precision) | Precision              | Fraction of detections that match a real object | Higher is better |
+| 6 | **FP**   | False Positives                    | Number of detector outputs that do not match any ground-truth object (ghost detections) | Lower is better |
+| 7 | **FN**   | False Negatives (Misses)           | Number of ground-truth objects the detector failed to find | Lower is better |
+
+### Identity / Association Metrics
+
+How well does the tracker keep the *same ID* on each person across frames?
+
+| # | Metric   | Full Name                          | What It Measures | Good Direction |
+|---|----------|------------------------------------|------------------|----------------|
+| 8 | **IDs**  | ID Switches                        | Number of times a tracked object's identity changes (e.g. person A becomes person B) | Lower is better |
+| 9 | **Frag** | Fragmentations                     | Number of times a ground-truth trajectory is interrupted (tracker loses then re-finds the target) | Lower is better |
+| 10 | **IDP** | ID Precision                       | Of the detections assigned an ID, how many have the correct ID | Higher is better |
+| 11 | **IDR** | ID Recall                          | Of the ground-truth IDs, how many were correctly recovered | Higher is better |
+
+### Target Lifecycle Metrics
+
+How completely does the tracker follow each person through the sequence?
+
+| # | Metric   | Full Name                          | What It Measures | Good Direction |
+|---|----------|------------------------------------|------------------|----------------|
+| 12 | **MT**  | Mostly Tracked                     | % of ground-truth targets tracked for >= 80% of their lifespan | Higher is better |
+| 13 | **PT**  | Partially Tracked                  | % of ground-truth targets tracked between 20%-80% of their lifespan | Context-dependent |
+| 14 | **ML**  | Mostly Lost                        | % of ground-truth targets tracked for <= 20% of their lifespan | Lower is better |
+
+### Localization Metric
+
+| # | Metric   | Full Name                          | What It Measures | Good Direction |
+|---|----------|------------------------------------|------------------|----------------|
+| 15 | **MOTP** | Multi-Object Tracking Precision   | Average overlap (IoU) between matched detections and ground truth -- measures *how accurately* bounding boxes are placed | Higher is better (max 100%) |
+
+### Count Metric
+
+| # | Metric    | Full Name                         | What It Measures |
+|---|-----------|-----------------------------------|------------------|
+| 16 | **GT**   | Num Ground-Truth Objects           | Total number of annotated ground-truth objects (for reference only, not a quality metric) |
+
+### Quick Cheat Sheet
+
+```
+              Higher = Better          Lower = Better
+              ───────────────          ──────────────
+  Headline:   MOTA, IDF1, HOTA        -
+  Detection:  Recall, Precision        FP, FN
+  Identity:   IDP, IDR                 IDs, Frag
+  Lifecycle:  MT                       ML
+  Accuracy:   MOTP                     -
+```
+
+### What the Evaluation Script Prints
+
+The `evaluate_mot15_nano.py` script prints **two tables** to the console:
+
+1. **Normalized table** -- Rcll, Prcn, MT, ML, FP, FN, IDs, Frag as ratios + MOTA, MOTP (one row per sequence + OVERALL)
+2. **Standard MOTChallenge table** -- IDF1, IDP, IDR, Rcll, Prcn, GT, MT, PT, ML, FP, FN, IDs, FM, MOTA, MOTP (one row per sequence + OVERALL)
 
 ---
 

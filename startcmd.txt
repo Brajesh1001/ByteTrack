@@ -1,2 +1,11 @@
 $env:PYTHONPATH = ".;$env:PYTHONPATH"
 .venv\Scripts\python.exe tools/demo_track.py video --path videos/palace.mp4 -f exps/example/mot/yolox_nano_mix_det.py -c pretrained/bytetrack_nano_mot17.pth.tar --device cpu --save_result
+
+$env:PYTHONPATH = ".;$env:PYTHONPATH"; 
+.venv\Scripts\python.exe tools/benchmark_mot.py --mot_root datasets/MOT15/train -f exps/example/mot/yolox_nano_mix_det.py -c pretrained/bytetrack_nano_mot17.pth.tar --name "Bytetrack_Nano_MOT15" --device cpu --csv_path "mot15_metrics.csv"
+
+.venv\Scripts\python.exe tools/download_assets.py --dataset
+
+.venv\Scripts\python.exe tools/download_assets.py --model bytetrack_x_mot17
+
+.venv\Scripts\python.exe tools/download_assets.py --dataset --model all

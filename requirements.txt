@@ -22,3 +22,6 @@ pycocotools    # Needed for COCO evaluation and data loading
 onnx>=1.15.0
 onnxruntime>=1.16.0
 onnxsim>=0.4.3
+
+gdown 
+kagglehub

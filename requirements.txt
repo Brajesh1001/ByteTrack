@@ -1,22 +1,24 @@
 # TODO: Update with exact module version
-numpy
-torch>=1.7
-opencv_python
+numpy<2.0      # Keep <2.0 for better compatibility with older ByteTrack code
+torch>=2.0.0
+torchvision>=0.15.0
+opencv-python
 loguru
 scikit-image
 tqdm
-torchvision>=0.10.0
 Pillow
 thop
 ninja
 tabulate
 tensorboard
-lap
+lapx           # Use lapx for better Windows/Python 3.12 compatibility
 motmetrics
 filterpy
 h5py
+cython         # Needed for some extensions
+pycocotools    # Needed for COCO evaluation and data loading
 
-# verified versions
-onnx==1.8.1
-onnxruntime==1.8.0
-onnx-simplifier==0.3.5
+# verified versions for Python 3.12
+onnx>=1.15.0
+onnxruntime>=1.16.0
+onnxsim>=0.4.3

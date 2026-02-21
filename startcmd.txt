@@ -1,0 +1,2 @@
+$env:PYTHONPATH = ".;$env:PYTHONPATH"
+.venv\Scripts\python.exe tools/demo_track.py video --path videos/palace.mp4 -f exps/example/mot/yolox_nano_mix_det.py -c pretrained/bytetrack_nano_mot17.pth.tar --device cpu --save_result
